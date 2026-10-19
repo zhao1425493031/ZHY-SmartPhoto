@@ -1,0 +1,14 @@
+rembg[cpu]>=2.0.85
+mediapipe>=0.10.20
+# rembg 和 mediapipe 分别依赖下面两个包，它们都会安装 cv2 模块，必须保持同一版本
+opencv-python-headless==5.0.0.93
+opencv-contrib-python==5.0.0.93
+pymatting>=1.1.12
+numpy>=1.26
+pillow>=10.2
+pillow-heif>=0.18
+pyyaml>=6.0
+fastapi>=0.110
+uvicorn>=0.29
+python-multipart>=0.0.9
+scikit-image>=0.22

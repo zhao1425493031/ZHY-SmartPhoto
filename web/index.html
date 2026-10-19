@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SmartPhoto · 证件照工作台</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="/assets/favicon.svg" alt="">
+      <div class="brand-text">
+        <span class="brand-name">SmartPhoto</span>
+        <span class="brand-sub">证件照工作台</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="privacy" title="所有处理都在这台电脑上完成"><i data-icon="lock"></i>本地处理，照片不会上传到网络</span>
+      <label class="model-picker">
+        <span class="model-picker-label">抠图引擎</span>
+        <select id="model" aria-label="抠图引擎"></select>
+      </label>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <!-- 左侧：设置 -->
+    <aside class="sidebar" aria-label="制作设置">
+      <section class="panel">
+        <div class="panel-head">
+          <h2><span class="step">1</span>证件规格</h2>
+          <button class="link-btn" id="editSpecBtn"><i data-icon="sliders"></i>自定义</button>
+        </div>
+        <div class="search">
+          <i data-icon="search"></i>
+          <input id="specSearch" type="search" placeholder="搜索规格，如“护照”“295x413”" autocomplete="off">
+        </div>
+        <div class="spec-list" id="specList" role="listbox" aria-label="证件规格"></div>
+        <p class="spec-note" id="specNote" hidden></p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2><span class="step">2</span>背景颜色</h2>
+        </div>
+        <div class="swatches" id="swatches"></div>
+        <label class="switch-row">
+          <span>渐变背景</span>
+          <span class="switch"><input type="checkbox" id="gradient"><span class="switch-track"></span></span>
+        </label>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2><span class="step">3</span>构图调整</h2>
+          <button class="link-btn" id="resetAdjustBtn"><i data-icon="rotate"></i>复位</button>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>人像大小</span><output id="zoomOut">100%</output></div>
+          <input type="range" id="zoom" min="70" max="130" step="0.5" value="100">
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>左右位置</span><output id="offXOut">0</output></div>
+          <input type="range" id="offX" min="-25" max="25" step="0.2" value="0">
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>上下位置</span><output id="offYOut">0</output></div>
+          <input type="range" id="offY" min="-25" max="25" step="0.2" value="0">
+        </div>
+        <p class="hint"><i data-icon="move"></i>也可以直接在预览图上拖动、用滚轮缩放</p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2><span class="step">4</span>文件要求</h2>
+        </div>
+        <div class="field">
+          <span class="field-label">格式</span>
+          <div class="segmented" id="formatSeg" role="radiogroup">
+            <button data-value="jpg" role="radio">JPG</button>
+            <button data-value="png" role="radio">PNG</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">文件大小 <em>（报名网站通常有要求）</em></span>
+          <div class="range-inputs">
+            <div class="input-suffix"><input type="number" id="kbMin" min="0" step="1" placeholder="不限"><span>KB</span></div>
+            <span class="range-sep">至</span>
+            <div class="input-suffix"><input type="number" id="kbMax" min="0" step="1" placeholder="不限"><span>KB</span></div>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- 中间：画布 -->
+    <section class="stage" id="stage" aria-label="预览">
+      <div class="view empty-view" id="emptyView">
+        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="上传照片">
+          <div class="dropzone-icon"><i data-icon="upload"></i></div>
+          <h1>上传一张照片开始制作</h1>
+          <p>拖放到这里、点击选择，或直接 <kbd>Ctrl</kbd> + <kbd>V</kbd> 粘贴</p>
+          <button class="btn btn-primary btn-lg" id="pickBtn" type="button"><i data-icon="image"></i>选择照片</button>
+          <span class="dropzone-foot">支持 JPG、PNG、HEIC，最大 30MB</span>
+        </div>
+        <ul class="tips">
+          <li><i data-icon="sun"></i><b>光线均匀</b><span>避免侧光和阴影</span></li>
+          <li><i data-icon="square"></i><b>背景简洁</b><span>纯色墙面最佳</span></li>
+          <li><i data-icon="user"></i><b>正脸平视</b><span>表情自然，不歪头</span></li>
+          <li><i data-icon="maximize"></i><b>留足空间</b><span>头顶和肩部都要拍到</span></li>
+        </ul>
+      </div>
+
+      <div class="view processing-view" id="processingView" hidden>
+        <div class="proc-card">
+          <div class="proc-thumb">
+            <img id="procThumb" alt="">
+            <div class="scanline"></div>
+          </div>
+          <div class="proc-body">
+            <h2 id="procTitle">正在处理照片</h2>
+            <ol class="proc-steps" id="procSteps"></ol>
+            <div class="progress"><div class="progress-bar" id="procBar"></div></div>
+            <p class="proc-eta" id="procEta"></p>
+          </div>
+        </div>
+        <div class="proc-error" id="procError" hidden>
+          <div class="proc-error-icon"><i data-icon="alert"></i></div>
+          <h2>无法制作这张照片</h2>
+          <p id="procErrorMsg"></p>
+          <button class="btn btn-primary" id="retryBtn" type="button"><i data-icon="image"></i>换一张照片</button>
+        </div>
+      </div>
+
+      <div class="view canvas-view" id="canvasView" hidden>
+        <div class="canvas-area" id="canvasArea">
+          <div class="photo-frame" id="frame" tabindex="0" aria-label="证件照预览，可拖动调整位置">
+            <img id="photo" alt="证件照预览" draggable="false">
+            <svg id="guides" class="guides" preserveAspectRatio="none"></svg>
+            <img id="original" class="original" alt="原图" hidden>
+            <div class="frame-hint" id="frameHint"><i data-icon="move"></i><span class="hint-mouse">拖动调整位置 · 滚轮缩放</span><span class="hint-touch">拖动调整位置 · 缩放用下方滑块</span></div>
+            <div class="frame-busy" id="frameBusy"></div>
+          </div>
+          <div class="photo-meta" id="photoMeta"></div>
+        </div>
+        <div class="toolbar">
+          <button class="tool-btn" id="guidesBtn" aria-pressed="true" title="显示参考线"><i data-icon="crosshair"></i><span>参考线</span></button>
+          <button class="tool-btn" id="compareBtn" title="按住查看原图"><i data-icon="eye"></i><span>按住看原图</span></button>
+          <span class="tool-sep"></span>
+          <button class="tool-btn" id="replaceBtn" title="更换照片"><i data-icon="refresh"></i><span>更换照片</span></button>
+        </div>
+      </div>
+
+      <div class="drop-overlay" id="dropOverlay"><div><i data-icon="upload"></i>松开即可上传</div></div>
+    </section>
+
+    <!-- 右侧：校验与导出 -->
+    <aside class="inspector" aria-label="校验与导出">
+      <div class="status-card idle" id="statusCard">
+        <div class="status-icon" id="statusIcon"><i data-icon="shield"></i></div>
+        <div>
+          <div class="status-title" id="statusTitle">等待照片</div>
+          <div class="status-sub" id="statusSub">上传后会按所选规格逐项校验</div>
+        </div>
+      </div>
+
+      <section class="panel">
+        <div class="panel-head"><h2>规格校验</h2><span class="badge" id="checkBadge" hidden></span></div>
+        <ul class="checks" id="checks">
+          <li class="checks-empty">暂无数据</li>
+        </ul>
+      </section>
+
+      <section class="panel" id="tipsPanel" hidden>
+        <div class="panel-head"><h2>提示</h2></div>
+        <ul class="notices" id="notices"></ul>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2>导出</h2></div>
+        <dl class="file-info" id="fileInfo">
+          <div><dt>尺寸</dt><dd id="infoSize">—</dd></div>
+          <div><dt>物理尺寸</dt><dd id="infoMm">—</dd></div>
+          <div><dt>文件</dt><dd id="infoFile">—</dd></div>
+          <div><dt>分辨率</dt><dd id="infoDpi">—</dd></div>
+        </dl>
+        <button class="btn btn-primary btn-block btn-lg" id="downloadBtn" disabled><i data-icon="download"></i>下载证件照</button>
+        <button class="btn btn-secondary btn-block" id="sheetBtn" disabled><i data-icon="printer"></i><span id="sheetBtnText">下载六寸排版</span></button>
+        <button class="sheet-preview" id="sheetPreview" hidden title="查看大图">
+          <img id="sheetThumb" alt="六寸相纸排版预览">
+          <span class="sheet-caption"><i data-icon="maximize"></i><span id="sheetCaption">六寸相纸排版</span></span>
+        </button>
+      </section>
+    </aside>
+  </main>
+
+  <!-- 自定义规格 -->
+  <div class="modal" id="specModal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="specModalTitle">
+      <div class="modal-head">
+        <h2 id="specModalTitle">自定义规格</h2>
+        <button class="icon-btn" data-close aria-label="关闭"><i data-icon="x"></i></button>
+      </div>
+      <form class="modal-body spec-form" id="specForm" novalidate>
+        <div class="form-grid">
+          <label class="col-span"><span>规格名称</span><input name="specName" maxlength="40" placeholder="例如：某某考试报名照"></label>
+          <label><span>宽度</span><div class="input-suffix"><input name="w" type="number" min="50" max="4000"><span>px</span></div></label>
+          <label><span>高度</span><div class="input-suffix"><input name="h" type="number" min="50" max="4000"><span>px</span></div></label>
+          <label><span>分辨率</span><div class="input-suffix"><input name="dpi" type="number" min="72" max="1200"><span>DPI</span></div></label>
+          <label><span>打印尺寸</span><output id="mmPreview" class="readonly">—</output></label>
+        </div>
+        <fieldset>
+          <legend>头部比例 <em>头顶（含头发）到下巴占照片高度</em></legend>
+          <div class="range-inputs">
+            <div class="input-suffix"><input name="headMin" type="number" step="0.1" min="1" max="99"><span>%</span></div>
+            <span class="range-sep">至</span>
+            <div class="input-suffix"><input name="headMax" type="number" step="0.1" min="1" max="99"><span>%</span></div>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>纵向定位</legend>
+          <div class="segmented" id="posSeg" role="radiogroup">
+            <button type="button" data-value="top">头顶留白</button>
+            <button type="button" data-value="eye">眼睛高度</button>
+          </div>
+          <p class="form-help" id="posHelp"></p>
+          <div class="range-inputs">
+            <div class="input-suffix"><input name="posMin" type="number" step="0.1" min="0" max="99"><span>%</span></div>
+            <span class="range-sep">至</span>
+            <div class="input-suffix"><input name="posMax" type="number" step="0.1" min="0" max="99"><span>%</span></div>
+          </div>
+        </fieldset>
+        <div class="form-grid">
+          <label><span>默认底色</span><select name="background" id="bgSelect"></select></label>
+          <label><span>格式</span><select name="format"><option value="jpg">JPG</option><option value="png">PNG</option></select></label>
+          <label><span>最小文件</span><div class="input-suffix"><input name="kbMin" type="number" min="0" placeholder="不限"><span>KB</span></div></label>
+          <label><span>最大文件</span><div class="input-suffix"><input name="kbMax" type="number" min="0" placeholder="不限"><span>KB</span></div></label>
+          <label class="col-span"><span>备注</span><input name="note" maxlength="120" placeholder="例如：报名网站链接、其他要求"></label>
+        </div>
+        <p class="form-error" id="specFormError" hidden></p>
+      </form>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" data-close type="button">取消</button>
+        <div class="modal-foot-right">
+          <button class="btn btn-secondary" id="saveSpecBtn" type="button"><i data-icon="bookmark"></i>保存为我的规格</button>
+          <button class="btn btn-primary" id="applySpecBtn" type="button">应用</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 排版大图 -->
+  <div class="modal" id="sheetModal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-dialog modal-wide" role="dialog" aria-modal="true" aria-label="六寸相纸排版">
+      <div class="modal-head">
+        <h2 id="sheetModalTitle">六寸相纸排版</h2>
+        <button class="icon-btn" data-close aria-label="关闭"><i data-icon="x"></i></button>
+      </div>
+      <div class="modal-body sheet-large"><img id="sheetLarge" alt="六寸相纸排版"></div>
+      <div class="modal-foot">
+        <span class="muted">按 6 寸（4×6 英寸）相纸打印，冲印时选择“原尺寸、不裁切”</span>
+        <button class="btn btn-primary" id="sheetModalDownload" type="button"><i data-icon="download"></i>下载排版图</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 确认框 -->
+  <div class="modal" id="confirmModal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-dialog modal-sm" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="modal-body confirm-body">
+        <div class="confirm-icon"><i data-icon="alert"></i></div>
+        <h2 id="confirmTitle"></h2>
+        <p id="confirmMsg"></p>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" data-close type="button">取消</button>
+        <button class="btn btn-primary" id="confirmOk" type="button">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <input type="file" id="fileInput" accept="image/*,.heic,.heif" hidden>
+  <script type="module" src="/assets/app.js"></script>
+</body>
+</html>

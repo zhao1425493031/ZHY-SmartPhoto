@@ -1,0 +1,128 @@
+# 证件照规格配置
+#
+# 字段说明：
+#   name                 显示名称
+#   group                界面中的分组
+#   size_px              输出像素 [宽, 高]；也可以只写 size_mm，按 dpi 自动换算
+#   size_mm              物理尺寸 [宽, 高]，单位毫米（可选，用于排版打印）
+#   dpi                  分辨率
+#   head_height_ratio    头部高度（头顶含头发 到 下巴）占照片高度的范围 [最小, 最大]
+#   top_margin_ratio     头顶到照片上边缘的距离占照片高度的范围（可选）
+#   eye_from_bottom_ratio 眼睛到照片下边缘的距离占照片高度的范围（可选，签证类常用）
+#   background           默认底色，对应下方 colors 里的键
+#   format               jpg / png
+#   kb_range             文件大小范围 [最小KB, 最大KB]，0 表示不限制
+#   note                 备注，会显示在界面上
+#
+# 网站上传要求经常调整，请以官方最新公告为准，必要时在界面的“高级设置”里修改。
+
+colors:
+  white: { name: 白色, hex: "#FFFFFF" }
+  blue: { name: 证件蓝, hex: "#438EDB" }
+  red: { name: 红色, hex: "#FF0000" }
+  light_gray: { name: 浅灰, hex: "#E6E6E6" }
+
+specs:
+  one_inch:
+    name: 一寸
+    group: 常用尺寸
+    size_mm: [25, 35]
+    size_px: [295, 413]
+    dpi: 300
+    head_height_ratio: [0.52, 0.62]
+    top_margin_ratio: [0.07, 0.11]
+    background: white
+    format: jpg
+
+  small_one_inch:
+    name: 小一寸（驾驶证等）
+    group: 常用尺寸
+    size_mm: [22, 32]
+    size_px: [260, 378]
+    dpi: 300
+    head_height_ratio: [0.52, 0.62]
+    top_margin_ratio: [0.07, 0.11]
+    background: white
+    format: jpg
+
+  large_one_inch:
+    name: 大一寸
+    group: 常用尺寸
+    size_mm: [33, 48]
+    size_px: [390, 567]
+    dpi: 300
+    head_height_ratio: [0.55, 0.65]
+    top_margin_ratio: [0.07, 0.11]
+    background: white
+    format: jpg
+
+  two_inch:
+    name: 二寸
+    group: 常用尺寸
+    size_mm: [35, 49]
+    size_px: [413, 579]
+    dpi: 300
+    head_height_ratio: [0.50, 0.60]
+    top_margin_ratio: [0.07, 0.11]
+    background: white
+    format: jpg
+
+  small_two_inch:
+    name: 小二寸
+    group: 常用尺寸
+    size_mm: [35, 45]
+    size_px: [413, 531]
+    dpi: 300
+    head_height_ratio: [0.52, 0.62]
+    top_margin_ratio: [0.07, 0.11]
+    background: white
+    format: jpg
+
+  cn_passport:
+    name: 中国护照 / 港澳通行证 / 中国签证
+    group: 证件
+    size_mm: [33, 48]
+    size_px: [390, 567]
+    dpi: 300
+    head_height_ratio: [0.583, 0.688]   # 头部长度 28～33mm
+    top_margin_ratio: [0.0625, 0.104]   # 头顶距上边 3～5mm
+    background: white
+    format: jpg
+    note: 头部长度 28～33mm，头顶距上边 3～5mm，白色背景，不戴眼镜为宜。
+
+  cn_id_card:
+    name: 身份证 / 社保卡规格
+    group: 证件
+    size_mm: [26, 32]
+    size_px: [358, 441]
+    dpi: 350
+    head_height_ratio: [0.55, 0.68]
+    top_margin_ratio: [0.06, 0.10]
+    background: white
+    format: jpg
+    note: 社保卡等线上办理常用此规格，各地对文件大小要求不同，请按当地要求在高级设置里填写 KB 范围。
+
+  us_visa:
+    name: 美国签证
+    group: 签证
+    size_mm: [51, 51]
+    size_px: [600, 600]
+    dpi: 300
+    head_height_ratio: [0.50, 0.69]
+    eye_from_bottom_ratio: [0.56, 0.69]
+    background: white
+    format: jpg
+    kb_range: [0, 240]
+    note: 头部占 50%～69%，眼睛距下边 56%～69%，白色背景，JPG 不超过 240KB，不能戴眼镜。
+
+  schengen_visa:
+    name: 申根签证（ICAO 35×45）
+    group: 签证
+    size_mm: [35, 45]
+    size_px: [413, 531]
+    dpi: 300
+    head_height_ratio: [0.711, 0.80]    # 下巴到头顶 32～36mm
+    top_margin_ratio: [0.04, 0.10]
+    background: light_gray
+    format: jpg
+    note: 下巴到头顶 32～36mm，浅色背景（白或浅灰），各国使馆细节略有差异。
